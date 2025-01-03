@@ -68,9 +68,31 @@ var (
 		"Mozilla/5.0 (iPad; CPU OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
 	}
 
-	logger      *log.Logger
-	results     sync.Map
-	validProxies []Proxy
+	logger        *log.Logger
+	results       sync.Map
+	validProxies  []Proxy
+	excludedDomains = []string{
+		"google.com",
+		"googleapis.com",
+		"googleusercontent.com",
+		"googleadservices.com",
+		"google-analytics.com",
+		"youtube.com",
+		"bing.com",
+		"duckduckgo.com",
+		"yahoo.com",
+		"msn.com",
+		"yandex.com",
+		"ask.com",
+		"baidu.com",
+		"facebook.com",
+		"twitter.com",
+		"instagram.com",
+		"linkedin.com",
+		"microsoft.com",
+		"apple.com",
+		// Tambahkan domain lain yang ingin dikecualikan di sini
+	}
 )
 
 type Proxy struct {
@@ -172,10 +194,15 @@ func extractDomain(rawURL string) string {
 		logger.Println(color.YellowString("Hostname kosong setelah ekstraksi dari URL: %s", rawURL))
 		return ""
 	}
+
 	// Tambahkan pengecualian untuk menghindari domain internal seperti bing.com
-	if host == "bing.com" {
-		return ""
+	for _, excluded := range excludedDomains {
+		if host == excluded || strings.HasSuffix(host, "."+excluded) {
+			logger.Println(color.YellowString("Domain '%s' termasuk dalam daftar pengecualian. Mengabaikan.", host))
+			return ""
+		}
 	}
+
 	logger.Println(color.CyanString("Ekstrak domain: %s dari URL: %s", host, rawURL))
 	return host
 }
